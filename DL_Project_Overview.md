@@ -70,10 +70,12 @@ Custom ANN Head (TRAINABLE — fine-tuned on our data)
 ├── Dense layer (512 neurons, ReLU activation)
 ├── Dropout (0.5 — overfitting prevention)
 ├── Batch Normalization
-└── Output layer (6 neurons, Softmax activation)
+└── Output layer (19 neurons, Softmax activation)
         ↓
 Style Classification:
-[Minimalist, Industrial, Maximalist, Botanical, Dark & Moody, Rustic & Farmhouse]
+[Asian, Coastal, Contemporary, Craftsman, Eclectic, Farmhouse, French Country,
+ Industrial, Mediterranean, Mid-Century Modern, Modern, Rustic, Scandinavian,
+ Shabby Chic, Southwestern, Traditional, Transitional, Tropical, Victorian]
 ```
 
 #### Prediction Logic (Mood Board → Match Score)
@@ -93,44 +95,53 @@ Step 5: Generate explanation based on dominant style categories
 
 ## 📦 Dataset
 
-### Primary: Places365
-- **1.8 million** scene images including living rooms, bedrooms, kitchens, cafes
-- Pre-labeled by place type — filter for interior categories
-- Free to download: http://places2.csail.mit.edu/
+### Source: Kaggle Interior Design Style Dataset
+- **~18,600 images** across 19 interior design style categories
+- Already split into train (~14,900 images) and test (~3,700 images)
+- Pre-labeled by style — no manual organisation required
 
-### Secondary: IKEA Product Dataset (Kaggle)
-- Furniture and décor product images with category labels
-- Useful for product-side testing
-- Available on Kaggle
-
-### Style Categories & Labels
-You will organize images into 6 folders, chosen for maximum visual distinctiveness:
+### Style Categories (19 classes, ~780 train / ~195 test images each)
 
 | Category | Visual Signature |
 |---|---|
-| 🤍 **Minimalist** | White, clean lines, empty space, no clutter |
-| 🏗️ **Industrial** | Concrete, metal, exposed pipes, dark tones |
-| 👑 **Maximalist** | Bold colours, patterns, layered textures, lots of objects |
-| 🌿 **Botanical** | Plants, natural materials, warm greens and browns |
-| 🕯️ **Dark & Moody** | Deep colours, dramatic lighting, rich textures |
-| 🪵 **Rustic & Farmhouse** | Wood, warm tones, vintage, cozy |
-
-> **Note on styles not covered (e.g. Japandi, Moroccan, Zen):** The model outputs probability vectors across all 6 dimensions rather than hard labels. A Japanese-style room would naturally score high on Minimalist + Botanical — capturing it accurately as a combination. Regional and hybrid aesthetics are on the Version 2 roadmap.
+| **Asian** | Minimalist forms, natural materials, zen balance |
+| **Coastal** | Light blues, whites, natural textures, beach-inspired |
+| **Contemporary** | Clean lines, neutral palette, current trends |
+| **Craftsman** | Handcrafted woodwork, earthy tones, structural details |
+| **Eclectic** | Bold mix of styles, colours, and eras |
+| **Farmhouse** | Shiplap, neutrals, vintage accents, cozy |
+| **French Country** | Ornate details, warm tones, rustic elegance |
+| **Industrial** | Concrete, metal, exposed pipes, dark tones |
+| **Mediterranean** | Terracotta, arches, warm colours, tile patterns |
+| **Mid-Century Modern** | Organic shapes, bold accents, functional furniture |
+| **Modern** | Minimal, clean geometry, monochrome palette |
+| **Rustic** | Raw wood, stone, warm textures, natural materials |
+| **Scandinavian** | White, light wood, functional simplicity |
+| **Shabby Chic** | Distressed finishes, pastels, vintage florals |
+| **Southwestern** | Adobe tones, bold patterns, desert-inspired |
+| **Traditional** | Formal symmetry, rich woods, classic details |
+| **Transitional** | Blend of traditional and contemporary |
+| **Tropical** | Lush greens, natural fibres, open-air feel |
+| **Victorian** | Ornate, dark woods, layered patterns, antiques |
 
 ```
-/data
-  /minimalist
-  /industrial
-  /maximalist
-  /botanical
-  /dark_moody
-  /rustic_farmhouse
+data/
+  raw/
+    dataset_train/
+      asian/  coastal/  contemporary/  craftsman/  eclectic/
+      farmhouse/  french-country/  industrial/  mediterranean/
+      mid-century-modern/  modern/  rustic/  scandinavian/
+      shabby-chic-style/  southwestern/  traditional/
+      transitional/  tropical/  victorian/
+    dataset_test/
+      (same 19 subfolders)
+    test_labels.csv
 ```
 
 ### Data Split
-- Training: 70%
-- Validation: 15%
-- Test: 15%
+- Training: dataset_train (~80% of total)
+- Test: dataset_test (~20% of total)
+- Validation: split from training set during model training (e.g. 15% of train)
 
 ---
 
@@ -246,12 +257,11 @@ pip install -r requirements.txt
 ```
 vibecheck/
 ├── data/
-│   ├── minimalist/
-│   ├── scandinavian/
-│   ├── botanical/
-│   ├── industrial/
-│   ├── maximalist/
-│   └── rustic/
+│   ├── raw/
+│   │   ├── dataset_train/   ← 19 style subfolders, ~780 images each
+│   │   ├── dataset_test/    ← 19 style subfolders, ~195 images each
+│   │   └── test_labels.csv
+│   └── processed/
 ├── models/
 │   └── vibecheck_model.h5
 ├── notebooks/
@@ -326,8 +336,8 @@ vibecheck/
 **Q: How do you prevent overfitting?**
 > Dropout (0.5) randomly deactivates neurons during training. Data augmentation artificially expands training data. Early stopping halts training when validation loss plateaus. Batch normalization stabilizes gradient updates.
 
-**Q: Why these 6 style categories specifically?**
-> We chose categories with maximum visual distinctiveness so the CNN can learn clear decision boundaries. Minimalist (white, clean, empty) looks nothing like Maximalist (bold, layered, busy) or Industrial (concrete, metal, dark). Overlapping styles like Scandinavian were merged into Minimalist to avoid noisy boundaries. Regional aesthetics like Japandi naturally emerge as combinations — a Japanese room scores high on Minimalist + Botanical, which captures it accurately without needing a separate class.
+**Q: Why these 19 style categories?**
+> The dataset comes pre-labeled with 19 real-world interior design styles used by professional designers and home decor platforms. Using all 19 gives the model more granular style understanding and makes the probability vectors more informative — a room can score across 19 dimensions rather than being forced into 6 broad buckets. The categories have enough visual distinctiveness for the CNN to learn meaningful decision boundaries (e.g. Victorian vs Scandinavian vs Industrial are visually very different), and the ~780 training images per class is sufficient for fine-tuning a pretrained ResNet50.
 
 **Q: Couldn't someone just use IKEA Kreativ?**
 > IKEA Kreativ visualizes furniture in your room — it doesn't decode your aesthetic profile from a mood board or validate arbitrary product photos against your personal style. These are complementary tools solving different problems.

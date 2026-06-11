@@ -1,0 +1,28 @@
+# Data — large image datasets, never commit
+data/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model weights
+models/
+*.h5
+*.keras
+*.pt
+*.pth
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
