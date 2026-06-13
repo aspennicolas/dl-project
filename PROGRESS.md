@@ -83,7 +83,7 @@ Tasks:
 - [x] Phase 4b restarted from checkpoint — created `02_model_training_colab2.ipynb` which loads `ambiance_model.h5` directly (skips Phase 4a entirely). Removed redundant model-load cell, removed 4a cell (was a trap that would have overwritten checkpoint). Fine-tuning resumes from the partially fine-tuned checkpoint, saving best weights back to `ambiance_model.h5` via `save_best_only=True`.
 - [x] Phase 4b complete — EarlyStopping triggered at epoch 6 (patience=5, no val_loss improvement after epoch 1). Best val accuracy: 33.35%, val_loss: 2.2579. Weights restored to epoch 1. Overfitting observed: training accuracy climbed to 62% while val accuracy stayed flat at ~33%. Model saved to Drive.
 - [x] Run 03_evaluation.ipynb on the final model — results: Top-1 34.1%, Top-5 73.1%, Macro F1 0.341. Best class: Industrial (0.447), Worst: French-Country (0.223). Artefacts saved to Drive (classification_report.txt, confusion_matrix.png, f1_per_class.png, misclassified_samples.png).
-- [ ] Save best model weights to `models/`
+- [x] Save best model weights to `models/ambiance_model.h5`
 
 ### Decision Log
 
@@ -100,11 +100,11 @@ Tasks:
 **Rubric relevance:** Technical Depth + MVP Integration — the cosine similarity pipeline must run in real-time for the frontend.
 
 Tasks:
-- [ ] Build mood board pipeline: run CNN on 3–5 images → average probability vectors
-- [ ] Build product check: run CNN on product image → style vector
-- [ ] Compute cosine similarity → match score (0–100%)
-- [ ] Generate text explanation based on dominant style categories
-- [ ] Ensure inference is fast enough for real-time frontend use
+- [x] Build mood board pipeline: run CNN on 3–5 images → average probability vectors
+- [x] Build product check: run CNN on product image → style vector
+- [x] Compute cosine similarity → match score (0–100%)
+- [x] Generate text explanation based on dominant style categories
+- [x] Ensure inference is fast enough for real-time frontend use
 
 ---
 
@@ -113,10 +113,10 @@ Tasks:
 **Rubric relevance:** MVP Integration (25%) — seamless, real-time, intuitive UI is the biggest technical chunk of the grade alongside model quality.
 
 Tasks:
-- [ ] Upload 3–5 inspo images → display decoded aesthetic profile (bar chart)
-- [ ] Upload product image → display match score + ✅/❌ + explanation
-- [ ] Ensure real-time predictions (no pre-computed results)
-- [ ] Polish UI — professional look, no friction, clear user flow
+- [x] Upload 3–5 inspo images → display decoded aesthetic profile (bar chart)
+- [x] Upload product image → display match score + ✅/❌ + explanation
+- [x] Ensure real-time predictions (no pre-computed results)
+- [x] Polish UI — professional look, no friction, clear user flow
 
 ---
 
@@ -134,6 +134,6 @@ Tasks:
 ---
 
 ## Submission Checklist ⬜
-- [ ] GitHub repo with clean, documented backend + frontend code
-- [ ] `README.md` with instructions on how to run the project
+- [x] GitHub repo with clean, documented backend + frontend code
+- [x] `README.md` with instructions on how to run the project
 - [ ] Final presentation slides (PDF format)
