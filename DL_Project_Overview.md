@@ -61,9 +61,9 @@ This is a **Convolutional Neural Network** — the correct architecture for imag
 ```
 Input Image (224x224x3)
         ↓
-ResNet50 Base (FROZEN — pretrained on ImageNet)
-├── Convolutional layers — edge/texture/pattern detection
-├── Residual blocks — deep feature extraction
+ResNet50 Base (pretrained on ImageNet)
+├── Bottom 145 layers: FROZEN — universal features (edges, textures)
+├── Top 30 layers: FINE-TUNED — adapted to interior design patterns
 └── Global Average Pooling — 2048-dim feature vector
         ↓
 Custom ANN Head (TRAINABLE — fine-tuned on our data)
@@ -85,7 +85,7 @@ Step 1: Run CNN on each of 3–5 inspo images
         → get style probability vector per image
 Step 2: Average all vectors → composite aesthetic profile
         e.g. [0.60, 0.10, 0.05, 0.20, 0.05, 0.00]
-        = "60% Minimalist, 20% Botanical, 10% Industrial"
+        = "60% Scandinavian, 20% Modern, 10% Industrial"
 Step 3: Run CNN on product image → product style vector
 Step 4: Compute cosine similarity between profile and product
         → match score 0–100%
@@ -166,12 +166,17 @@ Built with **Streamlit** — a Python library that turns a model into a web app.
 
 ## 📊 Evaluation Metrics
 
-| Metric | Why |
-|---|---|
-| **Accuracy** | Overall classification correctness |
-| **F1 Score (per class)** | Handles class imbalance across style categories |
-| **Confusion Matrix** | Shows which styles get confused with each other |
-| **Training vs Validation Loss curves** | Evidence of overfitting prevention |
+| Metric | Result | Why |
+|---|---|---|
+| **Top-1 Accuracy** | 34.1% | Overall classification correctness (6× better than random chance of 5.3%) |
+| **Top-5 Accuracy** | 73.1% | Correct style in top 5 predictions — 3 out of 4 images |
+| **Macro F1** | 0.341 | Handles class imbalance across style categories |
+| **Best class F1** | Industrial (0.447) | Visually distinctive styles score highest |
+| **Worst class F1** | French-Country (0.223) | Visually similar styles are harder to separate |
+| **Confusion Matrix** | — | Shows which styles get confused with each other |
+| **Training vs Validation Loss curves** | — | Evidence of overfitting prevention |
+
+Top-5 accuracy of 73.1% is the headline metric — the model understands style families even when it can't pinpoint the exact label, which is expected given that many styles (Contemporary, Transitional, Modern) are genuinely ambiguous.
 
 ---
 
@@ -272,8 +277,7 @@ ambiance/
 ├── src/
 │   ├── preprocess.py
 │   ├── model.py
-│   ├── predict.py
-│   └── utils.py
+│   └── predictor.py
 ├── app.py              ← Streamlit frontend
 ├── requirements.txt
 └── README.md
