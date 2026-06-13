@@ -1,11 +1,11 @@
-# 🏠 VibeCheck — Interior Design Style Matcher
+# 🏠 Ambiance — Interior Design Style Matcher
 ### Deep Learning Final Project — IE University
 
 ---
 
 ## 📌 Project Summary
 
-**VibeCheck** is an MVP that helps users answer one question before buying furniture or décor:
+**Ambiance** is an MVP that helps users answer one question before buying furniture or décor:
 
 > *"Does this item actually match my home aesthetic?"*
 
@@ -25,7 +25,7 @@ An AI-powered style compatibility checker that:
 - Tells you *why* something matches or doesn't
 
 ### Value Proposition (maps directly to rubric)
-| Criteria | How VibeCheck delivers |
+| Criteria | How Ambiance delivers |
 |---|---|
 | ⏱️ Saves time | Eliminates hours of manual comparison |
 | 💰 Reduces costs | Prevents costly returns before purchase |
@@ -37,7 +37,7 @@ An AI-powered style compatibility checker that:
 - Furniture retailers (IKEA, Wayfair, H&M Home) as a "shop the vibe" feature
 
 ### Market Context
-IKEA already has IKEA Kreativ (room visualization) and a GPT-powered assistant — but **no tool decodes a user's aesthetic DNA from a raw mood board and validates purchases against it**. VibeCheck fills that gap.
+IKEA already has IKEA Kreativ (room visualization) and a GPT-powered assistant — but **no tool decodes a user's aesthetic DNA from a raw mood board and validates purchases against it**. Ambiance fills that gap.
 
 ---
 
@@ -67,9 +67,10 @@ ResNet50 Base (FROZEN — pretrained on ImageNet)
 └── Global Average Pooling — 2048-dim feature vector
         ↓
 Custom ANN Head (TRAINABLE — fine-tuned on our data)
-├── Dense layer (512 neurons, ReLU activation)
-├── Dropout (0.5 — overfitting prevention)
+├── Dense layer (512 neurons, linear)
 ├── Batch Normalization
+├── ReLU activation
+├── Dropout (0.5 — overfitting prevention)
 └── Output layer (19 neurons, Softmax activation)
         ↓
 Style Classification:
@@ -192,7 +193,7 @@ Built with **Streamlit** — a Python library that turns a model into a web app.
 | Pretrained Model | ResNet50 (Keras Applications) |
 | Data Processing | NumPy, Pandas, PIL |
 | Visualization | Matplotlib, Seaborn |
-| Explainability | SHAP or manual feature importance |
+| Explainability | Confusion matrix + per-class F1 + misclassified image analysis |
 | Frontend | Streamlit |
 | Version Control | Git + GitHub |
 | IDE | VS Code |
@@ -239,8 +240,8 @@ print(tf.config.list_physical_devices('GPU'))
 ### Git Bash Setup
 ```bash
 # Clone your repo
-git clone https://github.com/yourusername/vibecheck.git
-cd vibecheck
+git clone https://github.com/yourusername/ambiance.git
+cd ambiance
 
 # Create virtual environment
 python -m venv venv
@@ -255,7 +256,7 @@ pip install -r requirements.txt
 ## 📁 Recommended Project Structure
 
 ```
-vibecheck/
+ambiance/
 ├── data/
 │   ├── raw/
 │   │   ├── dataset_train/   ← 19 style subfolders, ~780 images each
@@ -263,7 +264,7 @@ vibecheck/
 │   │   └── test_labels.csv
 │   └── processed/
 ├── models/
-│   └── vibecheck_model.h5
+│   └── ambiance_model.h5
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb
 │   ├── 02_model_training.ipynb
@@ -302,7 +303,7 @@ vibecheck/
 |---|---|---|
 | Hook | 1 min | "Have you ever bought furniture that looked perfect online but felt completely wrong at home?" |
 | Problem | 2 min | Furniture returns, style mismatch, $50B problem |
-| Solution | 2 min | VibeCheck — aesthetic DNA decoder + purchase validator |
+| Solution | 2 min | Ambiance — aesthetic DNA decoder + purchase validator |
 | Market context | 1 min | IKEA Kreativ exists but doesn't do this |
 | Technical deep dive | 3 min | ResNet50 + transfer learning + cosine similarity |
 | Evaluation | 1 min | Metrics, overfitting prevention |
@@ -316,7 +317,7 @@ vibecheck/
 
 - **Siamese Network** — end-to-end similarity learning instead of classification + cosine similarity
 - **Pinterest API integration** — import boards directly instead of manual upload
-- **B2B API** — furniture retailers integrate VibeCheck into their product pages
+- **B2B API** — furniture retailers integrate Ambiance into their product pages
 - **"Shop the match"** — when something doesn't match, suggest items that do
 - **Room photo input** — photograph your actual room instead of uploading inspo images
 
