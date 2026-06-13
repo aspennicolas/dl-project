@@ -10,8 +10,12 @@
 | Top-5 Accuracy | 73.1% |
 | Macro F1 | 0.341 |
 | Test images | 3,729 |
+| Correctly classified | 1,272 / 3,729 |
+| Misclassified | 2,457 / 3,729 (65.9%) |
 | Classes | 19 |
 | Random chance | 5.3% (1/19) |
+| Trainable parameters | 15,510,035 (top 30 ResNet50 layers + head) |
+| Frozen parameters | 9,138,560 (bottom ResNet50 layers) |
 
 ---
 
@@ -55,6 +59,34 @@ Model sees a Farmhouse room and outputs:
 | Contemporary | 0.227 | Looks almost identical to Modern + Transitional |
 | Farmhouse | 0.233 | Very similar to Rustic + Craftsman |
 | Transitional | 0.234 | By definition a blend of Traditional + Contemporary |
+
+---
+
+## Precision vs Recall Patterns
+
+Looking beyond F1, precision and recall reveal *how* the model makes mistakes:
+
+### Over-predicted classes (high recall, low precision)
+The model predicts these too often — even for images that aren't that style:
+| Class | Precision | Recall | What this means |
+|---|---|---|---|
+| Contemporary | 0.198 | 0.265 | Model guesses Contemporary a lot, but is rarely right |
+| Scandinavian | 0.272 | 0.359 | Same pattern — a common "catch-all" prediction |
+| Mid-Century Modern | 0.295 | 0.411 | Model catches most real MCM rooms but over-predicts |
+| Victorian | 0.338 | 0.468 | Highest recall of all — model spots Victorian well but also false-alarms |
+
+These styles likely share enough visual features with others that the model defaults to them when uncertain.
+
+### Under-predicted classes (high precision, low recall)
+The model is cautious — when it predicts these, it's usually right, but it misses many:
+| Class | Precision | Recall | What this means |
+|---|---|---|---|
+| Farmhouse | 0.276 | 0.201 | Model rarely predicts Farmhouse, misses 80% of real ones |
+| French-Country | 0.288 | 0.182 | Lowest recall — model almost never identifies this correctly |
+| Traditional | 0.376 | 0.232 | Conservative predictions, but accurate when made |
+| Shabby Chic | 0.466 | 0.326 | Good precision but misses a third of real examples |
+
+These styles are likely being absorbed into visually similar neighbours (Farmhouse → Rustic, French-Country → Traditional).
 
 ---
 
