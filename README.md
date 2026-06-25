@@ -26,8 +26,10 @@ ambiance/
 │   └── preprocess.py       ← Data preprocessing pipeline
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb
-│   ├── 02_model_training_colab2.ipynb   ← Training (run on Google Colab)
-│   └── 03_evaluation.ipynb              ← Evaluation metrics
+│   ├── 02_model_training.ipynb               ← Training (local)
+│   ├── 02_model_training_colab.ipynb         ← Training (Google Colab)
+│   ├── 02_model_training_colab_ft.ipynb      ← Training with fine-tuning (Google Colab)
+│   └── 03_evaluation.ipynb                   ← Evaluation metrics
 ├── models/
 │   └── ambiance_model.h5   ← Trained model weights (download separately)
 └── notes/                  ← Architecture docs, evaluation results, presentation notes
