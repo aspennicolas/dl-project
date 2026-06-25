@@ -30,9 +30,7 @@ ambiance/
 │   └── 03_evaluation.ipynb              ← Evaluation metrics
 ├── models/
 │   └── ambiance_model.h5   ← Trained model weights (download separately)
-├── PROGRESS.md             ← Full project progress tracker
-├── EVALUATION_RESULTS.md   ← Model evaluation results and analysis
-└── CNN_EXPLAINED.md        ← Architecture explanation
+└── notes/                  ← Architecture docs, evaluation results, presentation notes
 ```
 
 ---
