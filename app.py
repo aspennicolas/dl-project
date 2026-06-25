@@ -2,8 +2,6 @@ import os
 import sys
 import numpy as np
 import streamlit as st
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 from PIL import Image
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -143,6 +141,52 @@ html, body, [class*="css"] {
     line-height: 1.7;
 }
 
+/* Inline style bar chart */
+.style-bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.65rem;
+    gap: 0.75rem;
+}
+.style-bar-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    color: #555555;
+    width: 160px;
+    flex-shrink: 0;
+    text-align: right;
+}
+.style-bar-track {
+    flex: 1;
+    background: #EFEFED;
+    border-radius: 6px;
+    height: 10px;
+    overflow: hidden;
+}
+.style-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    background: #C4D4BC;
+}
+.style-bar-fill.top {
+    background: #7A9E72;
+}
+.style-bar-pct {
+    font-size: 0.78rem;
+    color: #AAAAAA;
+    width: 36px;
+    text-align: left;
+    flex-shrink: 0;
+}
+.style-bar-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    color: #555555;
+    font-weight: 500;
+    margin-bottom: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
 /* Dominant style callout */
 .dominant-callout {
     background: #FFFFFF;
@@ -223,13 +267,15 @@ if uploaded_mood:
     elif len(uploaded_mood) > 5:
         st.warning("Please upload no more than 5 images for the most accurate results.")
     else:
-        # Image grid
-        cols = st.columns(len(uploaded_mood))
-        images = []
-        for col, f in zip(cols, uploaded_mood):
-            img = Image.open(f)
-            images.append(img)
-            col.image(img, use_container_width=True)
+        # Image grid — centered at ~70% width so images aren't stretched across the full page
+        _, center, _ = st.columns([1, 5, 1])
+        with center:
+            cols = st.columns(len(uploaded_mood))
+            images = []
+            for col, f in zip(cols, uploaded_mood):
+                img = Image.open(f)
+                images.append(img)
+                col.image(img, use_container_width=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
@@ -241,34 +287,23 @@ if uploaded_mood:
         names  = [t[0].replace('-', ' ').title() for t in top5]
         scores = [t[1] for t in top5]
 
-        fig, ax = plt.subplots(figsize=(9, 3))
-        fig.patch.set_facecolor('#FFFFFF')
-        ax.set_facecolor('#FFFFFF')
-
-        bar_color = '#C4D4BC'
-        bars = ax.barh(names[::-1], scores[::-1], color=bar_color, height=0.5)
-        bars[-1].set_color('#7A9E72')  # Highlight top style
-
-        ax.set_xlim(0, max(scores) * 1.3)
-        ax.set_xlabel('Probability (%)', fontsize=9, color='#999999', labelpad=8)
-        ax.tick_params(axis='y', labelsize=10, colors='#333333')
-        ax.tick_params(axis='x', labelsize=8, colors='#AAAAAA')
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_visible(False)
-        ax.spines['bottom'].set_color('#EEEEEE')
-        ax.xaxis.grid(True, color='#F0F0F0', linewidth=0.5)
-        ax.set_axisbelow(True)
-
-        for bar, score in zip(bars[::-1], scores):
-            ax.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height() / 2,
-                    f'{score:.0f}%', va='center', ha='left', fontsize=9, color='#888888')
-
-        plt.title('Your Style Profile', fontsize=11, color='#333333',
-                  fontweight='normal', pad=12, loc='left')
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close(fig)
+        max_score = max(scores)
+        bars_html = '<div class="style-bar-title">Your Style Profile</div>'
+        for i, (name, score) in enumerate(zip(names, scores)):
+            # Top style gets the darker green; the rest get the lighter sage
+            fill_class = "style-bar-fill top" if i == 0 else "style-bar-fill"
+            # Scale bar widths relative to the highest score so the top bar always fills the track
+            pct_width = round((score / max_score) * 100)
+            bars_html += f"""
+            <div class="style-bar-row">
+                <div class="style-bar-label">{name}</div>
+                <div class="style-bar-track">
+                    <div class="{fill_class}" style="width:{pct_width}%"></div>
+                </div>
+                <div class="style-bar-pct">{score:.0f}%</div>
+            </div>"""
+        st.markdown(f'<div style="padding: 1.2rem 0 0.5rem 0;">{bars_html}</div>',
+                    unsafe_allow_html=True)
 
         # Dominant style callout
         st.markdown(f"""

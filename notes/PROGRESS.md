@@ -117,6 +117,7 @@ Tasks:
 - [x] Upload product image → display match score + ✅/❌ + explanation
 - [x] Ensure real-time predictions (no pre-computed results)
 - [x] Polish UI — professional look, no friction, clear user flow
+- [x] Replace matplotlib style profile chart with native HTML/CSS progress bars — fully integrated with design system (no more raster image embed)
 
 ---
 
