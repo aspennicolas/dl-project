@@ -28,6 +28,7 @@ ambiance/
 │   ├── 01_data_exploration.ipynb
 │   ├── 02_model_training.ipynb               ← Training (local)
 │   ├── 02_model_training_colab.ipynb         ← Training (Google Colab)
+│   ├── 02_model_training_colab_4b.ipynb      ← Training with outputs for 4b (Google Colab)
 │   ├── 02_model_training_colab_ft.ipynb      ← Training with fine-tuning (Google Colab)
 │   └── 03_evaluation.ipynb                   ← Evaluation metrics
 ├── models/
