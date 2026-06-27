@@ -25,12 +25,13 @@
 
 **On slide:**
 - Large image: a beautiful mood board next to a mismatched room
-- Stat in big font: **"1 in 4 furniture purchases is returned due to style mismatch"**
+- Stat in big font: **"62% of furniture shoppers struggle to visualise how a piece will look in their home before buying"**
+- Source: 3D Cloud Furniture Shopping Trends Study, 2026
 
 **Say:**
 > "Has this ever happened to you? You spend hours building a Pinterest board. You find what looks like the perfect sofa. It arrives — and something is just off. The colour, the lines, the vibe. It doesn't fit.
 >
-> You're not alone. Industry data shows 15 to 30 percent of furniture purchases are returned because of style mismatch — not damage, not defects, just: this doesn't look right in my home.
+> You're not alone. 62% of furniture shoppers say they struggle to visualise how a piece will look in their home before buying — and that visualisation gap — not knowing if a piece fits your space or your style — drives hesitation, wrong purchases, and costly returns.
 >
 > That's the problem we set out to solve."
 
@@ -42,11 +43,14 @@
 **On slide:**
 - Three columns:
   - **For consumers:** Hours wasted comparing, still getting it wrong
-  - **For retailers:** £50B+ in annual return costs globally
+  - **For retailers:** U.S. retail returns hit $890 billion in 2024 — more than double 2019 levels
   - **The gap:** No tool translates a mood board into purchase validation
+- Source: NRF & Happy Returns, 2025 Retail Returns Landscape
 
 **Say:**
 > "The root cause is simple: people know what they like when they see it, but they can't articulate it — and they definitely can't check whether a random product matches it.
+>
+> The scale of this problem is enormous. The National Retail Federation reported $890 billion in U.S. retail returns in 2024 alone — more than double the figure from 2019. While that figure covers all U.S. retail, the pattern holds globally — the UK furniture retail market alone is valued at £19.5 billion, with online channels accounting for nearly 40% of transactions and climbing.
 >
 > Current tools don't help. Pinterest lets you save images. IKEA Kreativ lets you visualise furniture in a room. But nothing decodes your personal aesthetic from a mood board and validates a purchase against it automatically.
 >
@@ -84,7 +88,9 @@
   | **Ambiance** | Decodes aesthetic + validates products | — |
 
 **Say:**
-> "IKEA has already invested in AI for interior design — IKEA Kreativ, their room visualiser. But even they don't do what we do. No existing tool decodes your aesthetic DNA from a raw mood board and validates arbitrary product photos against it. This is a clear white space."
+> "IKEA has already invested heavily in AI for interior design — IKEA Kreativ, their room visualiser, already has millions of active users. But even they don't do what we do. IKEA Kreativ works from your physical room — it doesn't decode your aesthetic from inspiration images or validate arbitrary product photos against your personal style profile.
+>
+> No existing tool does this. This is a clear white space."
 
 ---
 
@@ -116,7 +122,42 @@ Dense(19) + Softmax → style probabilities
 
 ---
 
-## Slide 7 — Data Pipeline & Hyperparameters (1 min)
+## Slide 7 — Prediction & Matching Logic (1 min)
+**Speaker: Person 3**
+
+**On slide:**
+```
+Step 1 — Per-image inference
+  PIL image → resize 224×224 → preprocess_input()
+  → model.predict() → (19,) probability vector
+
+Step 2 — Mood board aggregation
+  3–5 style vectors → np.mean(axis=0)
+  → single (19,) composite profile
+    e.g. "60% Scandinavian, 20% Modern, 10% Industrial"
+
+Step 3 — Product inference
+  Product photo → same pipeline → (19,) product vector
+
+Step 4 — Cosine similarity match score
+  score = dot(moodboard, product) / (‖moodboard‖ × ‖product‖)
+  → multiply × 100 → 0–100% match
+```
+
+**Say:**
+> "This is where the app's unique logic lives — Layer 3 in our architecture, `src/predictor.py`.
+>
+> The CNN gives us a 19-dimensional probability vector for each image — a style fingerprint. For the mood board, we run inference on each of the 3 to 5 uploaded images and average the resulting vectors into a single composite profile. That average captures the user's aesthetic across multiple examples, smoothing out noise from any single image.
+>
+> The product photo goes through the same pipeline, producing its own 19-dimensional vector.
+>
+> We then compute cosine similarity between the two vectors. Cosine similarity measures the angle between them in 19D space — not the magnitude, but the direction. This matters because two softmax vectors can have very different confidence levels but still point in the same stylistic direction. The result is a single match score from 0 to 100 percent.
+>
+> This is why Top-5 accuracy is our headline metric, not Top-1 — the cosine similarity uses the entire probability vector, so the full shape of the distribution matters more than the single winning class."
+
+---
+
+## Slide 8 — Data Pipeline & Hyperparameters (1 min)
 **Speaker: Person 3**
 
 **On slide:**
@@ -136,7 +177,7 @@ Dense(19) + Softmax → style probabilities
 
 ---
 
-## Slide 8 — Training Strategy & Overfitting Mitigation (1 min)
+## Slide 9 — Training Strategy & Overfitting Mitigation (1 min)
 **Speaker: Person 3**
 
 **On slide:**
@@ -165,7 +206,7 @@ Dense(19) + Softmax → style probabilities
 
 ---
 
-## Slide 9 — Evaluation Results (1 min)
+## Slide 10 — Evaluation Results (1 min)
 **Speaker: Person 4**
 
 **On slide:**
@@ -187,7 +228,28 @@ Dense(19) + Softmax → style probabilities
 
 ---
 
-## Slide 10 — Live Demo (3 min)
+## Slide 11 — Limitations & Improvements (1 min)
+**Speaker: Person 4**
+
+**On slide:**
+| # | Limitation | Improvement |
+|---|---|---|
+| 1 | **Product vs. room mismatch** — model trained on full rooms, never seen product on white background | Fine-tune on mixed dataset (rooms + product images), or add lightweight classifier to detect input type |
+| 2 | **Inter-class ambiguity** — Contemporary, Transitional, Modern share neutral palettes; F1 scores cluster at 0.22–0.23 | Hierarchical classification: predict broad style family first, then refine within family |
+| 3 | **Classification bottleneck** — two visually similar images assigned different labels score low even if they genuinely match | Siamese network (V2 roadmap): learn similarity directly from image pairs, bypass 19-class bottleneck |
+
+**Say:**
+> "We want to be honest about where the model falls short.
+>
+> The most impactful real-world failure is product versus room mismatch. Our model learned from full room photos — it has never seen a sofa on a white background. When a user uploads a product image, the model is operating outside its training distribution. The fix is to fine-tune on a mixed dataset that includes product images alongside rooms.
+>
+> The second limitation is inter-class ambiguity. Contemporary, Transitional, and Modern all share clean lines and neutral palettes — our lowest F1 scores cluster exactly here. Even professional designers argue about these labels. A hierarchical approach — classifying broad style families first, then refining — would reduce this confusion.
+>
+> The third is the classification bottleneck itself. Forcing aesthetic similarity through 19 discrete labels loses nuance. This directly motivates our V2 roadmap: a Siamese network that learns image similarity end-to-end, without the classification step as an intermediary."
+
+---
+
+## Slide 12 — Live Demo (3 min)
 **Speaker: Person 4 — runs the demo**
 
 **On slide:**
@@ -215,35 +277,42 @@ Dense(19) + Softmax → style probabilities
 
 ---
 
-## Slide 11 — Business Model & ROI (1 min)
+## Slide 13 — Business Model & Revenue Potential (1 min)
 **Speaker: Person 1**
 
 **On slide:**
-- ROI calculation:
-  ```
-  Industry average furniture return rate:  15–30%
-  Average order value:                     £500
-  Target: reduce returns by 50% with Ambiance
-
-  For a retailer with 10,000 orders/month:
-    Returns saved:    750–1,500 orders/month
-    Cost saved:       £375,000–£750,000/month
-    Annual saving:    £4.5M–£9M
-  ```
 - Revenue model:
-  - B2B API subscription for retailers (IKEA, Wayfair, H&M Home)
-  - Consumer app: freemium
+  - B2B API subscription: £2,000–£5,000/month per retailer
+  - Consumer app: freemium / £4.99/month premium tier
+- Realistic growth projections (B2B only):
+  ```
+  Year 1 — Pilot:
+    1–2 independent retailers
+    ARR: £24,000–£60,000
+
+  Year 2 — Early Growth:
+    5–10 mid-size retailers
+    ARR: £120,000–£300,000
+
+  Year 3 — Scale:
+    20 mid-size to enterprise retailers
+    ARR: £1.2M (at £5,000/month average)
+  ```
+  Consumer app revenue is additional upside not included in these projections.
+- Market opportunity:
+  - UK furniture retail market: £19.5B total ¹
+  - Online channel (~40% of sales): ~£7.8B ²
+  - Target: 20 retailers by Year 3 = £1.2M ARR
+- Sources:
+  - ¹ Mintel UK Furniture Retailing Market Report, 2025 (preview) — store.mintel.com/report/uk-furniture-retailing-market-report
+  - ² Online share estimate: Mordor Intelligence, UK Home Furniture Market Report, 2025 — mordorintelligence.com/industry-reports/uk-home-furniture-market
 
 **Say:**
-> "The business case is clear. Furniture returns cost retailers 15 to 30 percent of revenue — not just the refund, but reverse logistics, restocking, and lost customer trust.
->
-> A retailer processing 10,000 orders a month, with Ambiance reducing returns by 50%, saves between £375,000 and £750,000 per month. That's £4.5 to 9 million annually. The API subscription price is a rounding error by comparison.
->
-> Our target customers are furniture platforms — IKEA, Wayfair, H&M Home — who embed Ambiance as a 'check your match' feature at the point of purchase. The consumer version follows as a freemium app."
+> "We start with independent retailers in Year 1 — enterprise deals like Wayfair take 12 to 18 months to close. We scale to 20 clients by Year 3, but the revenue jump reflects not just more clients — enterprise contracts command £5,000 per month versus £2,000 to £3,000 for mid-size retailers in Year 2. Consumer app revenue is additional upside on top of this."
 
 ---
 
-## Slide 12 — Future Roadmap (30 sec)
+## Slide 14 — Future Roadmap (30 sec)
 **Speaker: Person 1**
 
 **On slide:**
@@ -259,20 +328,32 @@ Dense(19) + Softmax → style probabilities
 
 ---
 
-## Slide 13 — Summary & Thank You (30 sec)
+## Slide 15 — Summary & Thank You (30 sec)
 **Speaker: Person 2**
 
 **On slide:**
 - Three bullets:
-  - **The problem:** 15–30% furniture returns due to style mismatch
+  - **The problem:** $890B in retail returns annually — driven by a visualisation gap affecting 62% of furniture shoppers
   - **The solution:** CNN-powered aesthetic decoding + real-time product validation
   - **The result:** 73.1% top-5 accuracy across 19 interior design styles, working live demo
 - "Thank you — questions?"
 
 **Say:**
-> "To summarise: furniture style mismatch is a multi-billion pound problem. Ambiance solves it with a ResNet50 CNN that decodes your aesthetic from a mood board and validates products against it in real time. 73% top-5 accuracy across 19 style categories, running live.
+> "To summarise: furniture style mismatch sits inside a $890 billion returns problem. 62% of shoppers struggle to visualise purchases before buying — Ambiance solves that with a ResNet50 CNN that decodes your aesthetic from a mood board and validates products against it in real time. 73% top-5 accuracy across 19 style categories, running live.
 >
 > Thank you. We're happy to take questions."
+
+---
+
+## Sources
+
+| Stat | Source | URL |
+|---|---|---|
+| 62% visualisation struggle | 3D Cloud Furniture Shopping Trends Study, 2026 | 3dcloud.com/3d-cloud-furniture-shopping-trends-study |
+| $890B retail returns | NRF & Happy Returns, 2024 | nrf.com/research/2024-consumer-returns-retail-industry |
+| 19.3% online return rate | NRF & Happy Returns, 2025 | nrf.com/research/2025-retail-returns-landscape |
+| £19.5B UK furniture market | Mintel UK Furniture Retailing Market Report, 2025 (preview) | store.mintel.com/report/uk-furniture-retailing-market-report |
+| ~40% online channel share | Mordor Intelligence, UK Home Furniture Market Report, 2025 | mordorintelligence.com/industry-reports/uk-home-furniture-market |
 
 ---
 
@@ -308,17 +389,19 @@ Dense(19) + Softmax → style probabilities
 | 4. Solution | Person 2 | 1:00 |
 | 5. Market context | Person 2 | 0:30 |
 | 6. Architecture | Person 3 | 1:30 |
-| 7. Data pipeline | Person 3 | 1:00 |
-| 8. Training strategy | Person 3 | 1:00 |
-| 9. Evaluation | Person 4 | 1:00 |
-| 10. Live demo | Person 4 | 3:00 |
-| 11. Business ROI | Person 1 | 1:00 |
-| 12. Roadmap | Person 1 | 0:30 |
-| 13. Summary | Person 2 | 0:30 |
+| 7. Prediction & matching | Person 3 | 1:00 |
+| 8. Data pipeline | Person 3 | 1:00 |
+| 9. Training strategy | Person 3 | 1:00 |
+| 10. Evaluation | Person 4 | 1:00 |
+| 11. Limitations | Person 4 | 1:00 |
+| 12. Live demo | Person 4 | 3:00 |
+| 13. Business model | Person 1 | 1:00 |
+| 14. Roadmap | Person 1 | 0:30 |
+| 15. Summary | Person 2 | 0:30 |
 | Q&A | All | 2:00 |
-| **Total** | | **15:30** |
+| **Total** | | **17:30** |
 
-> Aim for 13 minutes of content so Q&A has breathing room. If you're running long, cut Slide 12 (roadmap) — it's the least rubric-critical.
+> Running 2.5 minutes over 15 min. To cut down: drop Slide 14 (Roadmap, 0:30) and merge Slide 7 (Prediction & Matching) into the live demo narration. That saves ~1:30 and brings you to ~16 min — tight but manageable with a brisk pace.
 
 ---
 
@@ -327,7 +410,7 @@ Dense(19) + Softmax → style probabilities
 | Pillar | Weight | Covered by |
 |---|---|---|
 | Business Use Case | 20% | Slides 3, 4, 5, 11 — quantified ROI, clear market gap, named customers |
-| Technical Depth | 25% | Slides 6, 7, 8, 9 — justified architecture, hyperparameters, preprocessing, eval metrics |
+| Technical Depth | 25% | Slides 6, 7, 8, 9, 10, 11 — architecture, matching logic, hyperparameters, preprocessing, eval metrics, limitations & improvements |
 | MVP Integration | 25% | Slide 10 — live real-time demo, no pre-computed results |
 | Presentation | 20% | All slides — each person speaks, clear structure, executive pitch tone |
 | Live Demo | 10% | Slide 10 — working app, backup screenshots ready |
